@@ -2,40 +2,52 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--- DEĞİŞTİRİLEBİLİR DEĞERLER
-_G.PUNCH_RADIUS = 3 -- 🛠️ Slider gibi değiştir
-_G.PUNCH_COLOR = Color3.fromRGB(255, 60, 60) -- 🎨 Renk
+_G.PUNCH_RADIUS = _G.PUNCH_RADIUS or 3
+_G.PUNCH_COLOR = _G.PUNCH_COLOR or Color3.fromRGB(255, 0, 0)
+_G.AUTO_PUNCH_ENABLED = _G.AUTO_PUNCH_ENABLED or false
 
--- Visual top (yalnızca sen görürsün)
-local visual = Instance.new("Part")
-visual.Shape = Enum.PartType.Ball
-visual.Size = Vector3.new(_G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2)
-visual.Transparency = 0.6
-visual.Material = Enum.Material.Neon
-visual.Anchored = true
-visual.CanCollide = false
-visual.CastShadow = false
-visual.Color = _G.PUNCH_COLOR
-visual.Parent = workspace
+-- Auto Punch Visual yaratıcı
+function createVisual()
+	local visual = Instance.new("Part")
+	visual.Shape = Enum.PartType.Ball
+	visual.Size = Vector3.new(_G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2)
+	visual.Transparency = 0.6
+	visual.Material = Enum.Material.Neon
+	visual.Anchored = true
+	visual.CanCollide = false
+	visual.CastShadow = false
+	visual.Color = _G.PUNCH_COLOR
+	visual.Name = "PunchVisual"
+	visual.Parent = workspace
+	return visual
+end
 
--- Sürekli karakter pozisyonunu takip eder
-RunService.RenderStepped:Connect(function()
-	local char = LocalPlayer.Character
-	if char and char:FindFirstChild("HumanoidRootPart") then
-		visual.Position = char.HumanoidRootPart.Position
+-- Güncel visual referansı
+_G.PunchVisual = nil
+
+-- Visual toggle yönetimi
+task.spawn(function()
+	while true do
+		if _G.AUTO_PUNCH_ENABLED then
+			if not _G.PunchVisual then
+				_G.PunchVisual = createVisual()
+			end
+		else
+			if _G.PunchVisual then
+				_G.PunchVisual:Destroy()
+				_G.PunchVisual = nil
+			end
+		end
+		task.wait(0.3)
 	end
 end)
 
--- RADIUS ve RENK değiştiğinde otomatik güncelle
-task.spawn(function()
-	while true do
-		local newSize = Vector3.new(_G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2)
-		if visual.Size ~= newSize then
-			visual.Size = newSize
-		end
-		if visual.Color ~= _G.PUNCH_COLOR then
-			visual.Color = _G.PUNCH_COLOR
-		end
-		task.wait(0.2)
+-- Visual pozisyon ve boyut güncellemesi
+RunService.RenderStepped:Connect(function()
+	if _G.PunchVisual and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		local hrp = LocalPlayer.Character.HumanoidRootPart
+		_G.PunchVisual.Position = hrp.Position
+		_G.PunchVisual.Color = _G.PUNCH_COLOR
+		_G.PunchVisual.Size = Vector3.new(_G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2)
 	end
 end)
