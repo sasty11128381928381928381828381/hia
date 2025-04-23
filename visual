@@ -1,0 +1,41 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- DEĞİŞTİRİLEBİLİR DEĞERLER
+_G.PUNCH_RADIUS = 3 -- 🛠️ Slider gibi değiştir
+_G.PUNCH_COLOR = Color3.fromRGB(255, 60, 60) -- 🎨 Renk
+
+-- Visual top (yalnızca sen görürsün)
+local visual = Instance.new("Part")
+visual.Shape = Enum.PartType.Ball
+visual.Size = Vector3.new(_G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2)
+visual.Transparency = 0.6
+visual.Material = Enum.Material.Neon
+visual.Anchored = true
+visual.CanCollide = false
+visual.CastShadow = false
+visual.Color = _G.PUNCH_COLOR
+visual.Parent = workspace
+
+-- Sürekli karakter pozisyonunu takip eder
+RunService.RenderStepped:Connect(function()
+	local char = LocalPlayer.Character
+	if char and char:FindFirstChild("HumanoidRootPart") then
+		visual.Position = char.HumanoidRootPart.Position
+	end
+end)
+
+-- RADIUS ve RENK değiştiğinde otomatik güncelle
+task.spawn(function()
+	while true do
+		local newSize = Vector3.new(_G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2, _G.PUNCH_RADIUS * 2)
+		if visual.Size ~= newSize then
+			visual.Size = newSize
+		end
+		if visual.Color ~= _G.PUNCH_COLOR then
+			visual.Color = _G.PUNCH_COLOR
+		end
+		task.wait(0.2)
+	end
+end)
